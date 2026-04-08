@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password, firstname, lastname } = await req.json();
+    const supabase = await createClient();
 
-    // 1️⃣ Create new user in Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }
 
-    // 2️⃣ Insert firstname and lastname in profiles table
     const { error: profileError } = await supabase
       .from('profiles')
       .insert([{ id: data.user!.id, firstname, lastname }]);
@@ -29,4 +28,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Something went wrong' }, { status: 500 });
   }
 }
-
